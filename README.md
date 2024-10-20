@@ -15,12 +15,12 @@ This project is a Go application for fetching, storing, and querying weather dat
 4. OpenWeatherMap API key
 ## Setup
 1. Clone the Repository
-2. Copy code
+    Copy code
   ```bash
   - git clone https://github.com/AaryanO2/Weather_Monitor.git
   - cd WeatherWatch
 ```
-3. Configure Environment Variables
+2. Configure Environment Variables
   - Create a .env file in the root directory and add your environment variables:
   - eg: 
       env
@@ -30,8 +30,8 @@ This project is a Go application for fetching, storing, and querying weather dat
       POSTGRES_DB=codedb
       DATABASE_URL=postgres://postgres:yourPassword@db:5432/codedb?sslmode=disable
   -Update the Docker-compose file replace YOUR_API_KEY with OpenWeatherMap API key
-4. Build and Run the Application
-5. Using Docker Compose, build and start the services:
+3. Build and Run the Application
+4. Using Docker Compose, build and start the services:
   ```bash
   - cd server
   - docker-compose up --build
