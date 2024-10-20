@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Chart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #F9F9F9; /* Light background */
+            color: #333333; /* Dark text */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: auto; /* Change to auto to fit content */
+            overflow: auto;
+        }
+        h1 {
+            text-align: center;
+            margin: 0;
+            background-color: #4A90E2; /* Primary color */
+            color: #FFFFFF; /* White text on primary color */
+            padding: 20px;
+            width: 100%;
+            font-size: 2.5rem;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .chart-container {
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            background-color: #FFFFFF; /* White background for container */
+            width: 100%;
+            max-width: 800px; /* Set max-width for better layout */
+        }
+        #weatherChart {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        .dropdown-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .dropdown-container label {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .summary-container {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 800px;
+            text-align: left;
+            padding: 20px;
+            background-color: #FFFFFF; /* White background for summaries */
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .summary {
+            border-bottom: 1px solid #ccc;
+            padding: 10px 0;
+        }
+        .home-button {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .home-button a {
+            text-decoration: none;
+            color: #4A90E2; /* Primary color */
+            font-weight: bold;
+            padding: 10px 15px;
+            background-color: #FFFFFF; /* White background */
+            border: 2px solid #4A90E2; /* Primary border color */
+            border-radius: 25px;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        .home-button a:hover {
+            background-color: #4A90E2; /* Primary color on hover */
+            color: #FFFFFF; /* White text */
+            transform: scale(1.05); /* Slight scale effect */
+        }
+        .loading {
+            font-size: 18px;
+            color: #888;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Weather Chart</h1>
+    <div class="loading" id="loadingMessage">Loading weather chart...</div>
+    <div id="resultContainer" class="chart-container" style="display: none;">
+        <img id="weatherChart" alt="Weather Chart">
+    </div>
+    <div class="dropdown-container">
+        <label for="hoursSelect">Select Past Hours:</label>
+        <select id="hoursSelect">
+            <option value="24">24 hours</option>
+            <option value="48">48 hours</option>
+            <option value="72">72 hours</option>
+            <option value="96">96 hours</option>
+        </select>
+    </div>
+    <div id="summaryContainer" class="summary-container" style="display: none;">
+        <h2>Weather Summaries</h2>
+        <div id="summaries"></div>
+    </div>
+    <div class="home-button">
+        <a href="index.html">Go to Home Page</a>
+    </div>
+
+    <script>
+        function formatDateLocal(date) {
+            const pad = (num) => num.toString().padStart(2, '0');
+            const year = date.getFullYear();
+            const month = pad(date.getMonth() + 1);
+            const day = pad(date.getDate());
+            const hours = pad(date.getHours());
+            const minutes = pad(date.getMinutes());
+            const seconds = pad(date.getSeconds());
+            return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}Z`;
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const city = urlParams.get('city');
+        const initialHours = parseInt(urlParams.get('hours'), 10) || 24; // Default to 24 if not provided
+
+        if (!city) {
+            alert("Invalid query parameters.");
+            window.location.href = 'index.html'; // Redirect to the form page
+        } else {
+            fetchAndDisplayChart(city, initialHours);
+            fetchAndDisplaySummaries(city); // Fetch weather summaries
+
+            // Set up the dropdown
+            const hoursSelect = document.getElementById('hoursSelect');
+            hoursSelect.value = initialHours; // Set initial value of the dropdown
+
+            hoursSelect.addEventListener('change', () => {
+                const selectedHours = hoursSelect.value;
+                changeHours(selectedHours); // Call changeHours function
+            });
+        }
+
+        function fetchAndDisplayChart(city, hours) {
+            const now = new Date();
+            const end = formatDateLocal(now);
+            const start = formatDateLocal(new Date(now.getTime() - hours * 60 * 60 * 1000));
+            const apiUrl = `http://localhost:8080/api/v1/weather/chart?city=${encodeURIComponent(city)}&start=${start}&end=${end}`;
+
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    const imageUrl = URL.createObjectURL(blob);
+                    const chartImg = document.getElementById('weatherChart');
+                    chartImg.src = imageUrl;
+                    chartImg.style.display = 'block'; // Show the image
+                    document.getElementById('loadingMessage').style.display = 'none'; // Hide loading message
+                    document.getElementById('resultContainer').style.display = 'block'; // Show the result container
+                })
+                .catch(error => {
+                    console.error('Error fetching the chart:', error);
+                    alert('Failed to fetch the weather chart. Please try again.');
+                });
+        }
+
+        function fetchAndDisplaySummaries(city) {
+            const apiUrl = `http://localhost:8080/api/v1/weather/summary?city=${encodeURIComponent(city)}`;
+
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(summaries => {
+                    const summariesContainer = document.getElementById('summaries');
+                    summariesContainer.innerHTML = ''; // Clear previous summaries
+                    summaries.forEach(summary => {
+                        const summaryDiv = document.createElement('div');
+                        summaryDiv.className = 'summary';
+                        summaryDiv.innerHTML = `
+                            <strong>Date:</strong> ${summary.date} <br>
+                            <strong>Average Temperature:</strong> ${summary.average_temperature.toFixed(2)} °C <br>
+                            <strong>Max Temperature:</strong> ${summary.max_temperature.toFixed(2)} °C <br>
+                            <strong>Min Temperature:</strong> ${summary.min_temperature.toFixed(2)} °C <br>
+                            <strong>Dominant Condition:</strong> ${summary.dominant_condition} <br>
+                        `;
+                        summariesContainer.appendChild(summaryDiv);
+                    });
+                    document.getElementById('summaryContainer').style.display = 'block'; // Show the summaries container
+                })
+                .catch(error => {
+                    console.error('Error fetching the summaries:', error);
+                    alert('Failed to fetch the weather summaries. Please try again.');
+                });
+        }
+
+        function changeHours(hours) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const city = urlParams.get('city');
+            window.location.href = `results.html?city=${encodeURIComponent(city)}&hours=${hours}`; // Redirect to results with new hours
+        }
+    </script>
+</body>
+</html>
