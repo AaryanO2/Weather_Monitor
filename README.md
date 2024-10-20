@@ -22,13 +22,13 @@ This project is a Go application for fetching, storing, and querying weather dat
 ```
 2. Configure Environment Variables
   - Create a .env file in the root directory and add your environment variables:
-  - eg: 
-      env
-      Copy code
+  - eg:
+    ```
       POSTGRES_USER=postgres
       POSTGRES_PASSWORD=yourPassword
       POSTGRES_DB=codedb
       DATABASE_URL=postgres://postgres:yourPassword@db:5432/codedb?sslmode=disable
+    ```
   -Update the Docker-compose file replace YOUR_API_KEY with OpenWeatherMap API key
 3. Build and Run the Application
 4. Using Docker Compose, build and start the services:
