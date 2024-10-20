@@ -29,6 +29,7 @@ This project is a Go application for fetching, storing, and querying weather dat
       POSTGRES_PASSWORD=yourPassword
       POSTGRES_DB=codedb
       DATABASE_URL=postgres://postgres:yourPassword@db:5432/codedb?sslmode=disable
+  -Update the Docker-compose file replace YOUR_API_KEY with OpenWeatherMap API key
 4. Build and Run the Application
 5. Using Docker Compose, build and start the services:
   ```bash
